@@ -112,12 +112,12 @@ void line_init(struct line * l, struct board * b, enum direction dir, int idx){
 	else{
 		int st_i, st_j;
 		if(idx <= 18){
-			st_i = 0;
-			st_j = idx;
+			st_i = idx;
+			st_j = 0;
 		}
 		else{
-			st_i = idx - 18;
-			st_j = 18;
+			st_i = 18;
+			st_j = idx-18;
 		}
 		for(int i = 0; i < l->length; i++){
 			l->pts[i] = &(b->pts[st_i-i][st_j+i]);
