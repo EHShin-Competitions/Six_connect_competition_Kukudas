@@ -43,6 +43,7 @@ int showBoard(int x, int y) : [x, y] 좌표에 무슨 돌이 존재하는지 보여주는 함수 (
 
 // ------------------ NEW CODE ----------------------
 #include <stdlib.h>
+#include <string.h>
 #define MIN_VALUE -1.0
 
 bool initialized = false;
@@ -105,7 +106,8 @@ struct stack_node{
 
 struct dynamic_board{
 	// board that can roll back moves
-	int depth; // possible number of roll back (current stack size + 1)
+	struct board * current;
+	int depth; // possible number of roll back (current stack size)
 	struct stack_node * stack_top;
 };
 
@@ -113,6 +115,7 @@ struct dynamic_board * dynamic_init(struct board * base);
 void dynamic_put_player(struct dynamic_board * db, int i, int j);
 void dynamic_put_enemy(struct dynamic_board * db, int i, int j);
 void dynamic_rollback_one(struct dynamic_board * db);
+void dynamic_push_current(struct dynamic_board * db);
 void dynamic_free(struct dynamic_board * db);
 
 void point_init(struct point * p, int row, int col){
@@ -986,18 +989,74 @@ void find_max_value_player(struct board * b, int * bi, int * bj){
 	*bj = best_j;
 }
 
+struct dynamic_board * dynamic_init(struct board * base){
+	struct dynamic_board * db = (struct dynamic_board *)malloc(sizeof(struct dynamic_board));
+	db->depth = 0;
+	db->stack_top = NULL;
+	db->current = (struct board *)malloc(sizeof(struct board));
+	memcpy(db->current, base, sizeof(struct board));
+	return db;
+}
+
+void dynamic_push_current(struct dynamic_board * db){
+	/* TODO: guarantee memory limit */
+	struct stack_node * sn;
+	sn = (struct stack_node *)malloc(sizeof(struct stack_node));
+	sn->saved_board = (struct board *)malloc(sizeof(struct board));
+	memcpy(sn->saved_board, db->current, sizeof(struct board));
+	sn->below = db->stack_top;
+	db->stack_top = sn;	
+	db->depth ++;
+}
+
+void dynamic_rollback_one(struct dynamic_board * db){
+	struct stack_node * next_top;
+	if(db->depth == 0){
+		printf("Cannot rollback further!\n");
+	}
+	memcpy(db->current, db->stack_top->saved_board, sizeof(struct board));
+	next_top = db->stack_top->below;
+	free(db->stack_top->saved_board);
+	free(db->stack_top);
+	db->stack_top = next_top;
+	db->depth--;
+}
+
+void dynamic_put_player(struct dynamic_board * db, int i, int j){
+	dynamic_push_current(db);
+	board_put_player(db->current, i, j);
+}
+
+void dynamic_put_enemy(struct dynamic_board * db, int i, int j){
+	dynamic_push_current(db);
+	board_put_enemy(db->current, i, j);
+}
+
+void dynamic_free(struct dynamic_board * db){
+	struct stack_node * sn;
+	struct stack_node * next_sn;
+	for(sn = db->stack_top; sn != NULL; sn = next_sn){
+		next_sn = sn->below;
+		free(sn->saved_board);
+		free(sn);
+	}
+	free(db->current);
+	free(db);
+}
 
 int main(){
 
 	struct board b;
 	board_init(&b);
-	board_put_player(&b, 9, 13);
-	board_put_player(&b, 9, 14);
-	board_put_neutral(&b, 9, 15);
-	board_put_player(&b, 9, 16);
-	board_put_player(&b, 9, 17);
-	board_put_player(&b, 9, 18);
-	display_value(&b);
-	display_rank(&b);
+	struct dynamic_board * db = dynamic_init(&b);
+	dynamic_put_player(db, 9, 9);
+	dynamic_put_enemy(db, 9, 7);
+	dynamic_rollback_one(db);
+	dynamic_put_enemy(db, 9, 7);
+	dynamic_rollback_one(db);
+	dynamic_put_enemy(db, 9, 7);
+	dynamic_rollback_one(db);
+	display_value(db->current);
+	dynamic_free(db);
 	return 0;
 }
