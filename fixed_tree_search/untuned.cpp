@@ -49,27 +49,32 @@ int showBoard(int x, int y) : [x, y] 좌표에 무슨 돌이 존재하는지 보여주는 함수 (
 bool initialized = false;
 
 enum cell_state{
-	EMPTY,
+	EMPTY = 0,
 	PLAYER,
 	ENEMY,
 	NEUTRAL
 };
 
 enum direction{
-	LR,
+	LR = 0,
 	UD,
 	DD,
 	DU
 };
 
+enum turn{
+	PLAYER_FIRST = 0,
+	PLAYER_SECOND,
+	ENEMY_FIRST,
+	ENEMY_SECOND
+};
 
 struct point{
 	int row;
 	int col;
 	enum cell_state state;
 	/* maybe 4 reference to associated line? (or value sources) */
-	float value_player; // function of n_player and n_enemy
-	float value_enemy;
+	float value[4]; // function of n_player and n_enemy, idx: turn
 	int n_player[4][7];
 	int n_enemy[4][7];
 	bool forbid_player; // no 7+ connection
@@ -125,8 +130,9 @@ void point_init(struct point * p, int row, int col){
 			p->n_player[d][r] = 0;
 			p->n_enemy[d][r] = 0;
 			p->state = EMPTY;
-			p->value_player = 0.0;
-			p->value_enemy = 0.0;
+			for(int t = 0; t < 4; t++){
+				p->value[t] = 0.0;
+			}
 			p->forbid_player = false;
 			p->forbid_enemy = false;
 			p->row = row;
@@ -216,6 +222,10 @@ void line_init(struct line * l, struct board * b, enum direction dir, int idx){
 	}
 }
 
+/*
+
+*/
+
 float inv_sq_sum(int n){
 	float res = 0.0;
 	for (int i = 1; i <= n; i++){
@@ -237,14 +247,48 @@ void reevaluate_point(struct point * p){
 		}
 	}
 
+	total_value *= 0.01;
 
 	if (total_value <= MIN_VALUE){
 		printf("LOWER THAN MIN VALUE!!!\n");
 	}
 
-	p->value_player = 0.1 * total_value;
-	p->value_enemy = 0.1 * total_value;
+	// very naive heuristic : check certain wins
+
+	for (int t = 0; t < 4; t++){
+		p->value[t] = 0;
+	}
+	for (int r = 4; r <= 6; r++){
+		for (int d = 0; d < 4; d++){
+			if(p->n_player[d][r] > 0){
+				//printf("certain player win!\n");
+				p->value[PLAYER_FIRST] = 7; // certain win
+				p->value[ENEMY_FIRST] = 5; // not win then lose
+				p->value[ENEMY_SECOND] = 5;
+				if(r >= 5){
+					p->value[PLAYER_SECOND] = 7; // certain win
+				}
+			}
+		}
+	}
+	for (int r = 4; r <= 6; r++){
+		for (int d = 0; d < 4; d++){
+			if(p->n_enemy[d][r] > 0){
+				p->value[ENEMY_FIRST] = 7; // certain win
+				p->value[PLAYER_FIRST] = 5; // not win then lose
+				p->value[PLAYER_SECOND] = 5;
+				if(r >= 5){
+					p->value[ENEMY_SECOND] = 7; // certain win
+				}
+			}
+		}
+	}
+	for (int t = 0; t < 4; t++){
+		p->value[t] += total_value;
+	}
+
 }
+
 
 
 void board_init(struct board * b){
@@ -278,13 +322,14 @@ void board_init(struct board * b){
 
 
 struct line * get_associated_line(struct board * b, int i, int j, enum direction dir, int * idx){
+	struct line * l;
 	if (dir == LR){
 		*idx = j;
-		return &(b->LRlines[i]);
+		l = &(b->LRlines[i]);
 	}
 	else if (dir == UD){
 		*idx = i;
-		return &(b->UDlines[j]);
+		l = &(b->UDlines[j]);
 	}
 	else if (dir == DD){
 		if (i >= j){
@@ -293,7 +338,7 @@ struct line * get_associated_line(struct board * b, int i, int j, enum direction
 		else{
 			*idx = i;
 		}
-		return &(b->DDlines[18 + j - i]);
+		l = &(b->DDlines[18 + j - i]);
 	}
 	else{
 		if (i + j <= 18){
@@ -302,13 +347,14 @@ struct line * get_associated_line(struct board * b, int i, int j, enum direction
 		else{
 			*idx = 18 - i;
 		}
-		return &(b->DUlines[i + j]);
+		l = &(b->DUlines[i + j]);
 	}
+	return l;
 }
 
 void display_rank(struct board * b){
 	printf("PLAYER\n");
-	for (int r = 0; r <= 1; r++){
+	for (int r = 0; r <= 0; r++){
 		printf("[RANK %d]\n", r);
 		for (int d = 0; d < 4; d++){
 			printf("direction %d:\n", d);
@@ -339,7 +385,7 @@ void display_rank(struct board * b){
 
 void display_value(struct board * b){
 	struct point * p;
-	printf("PLAYER VALUE\n");
+	printf("PLAYER_FIRST VALUE\n");
 	for (int i = 0; i < 19; i++){
 		for (int j = 0; j < 19; j++){
 			p = &(b->pts[i][j]);
@@ -356,7 +402,7 @@ void display_value(struct board * b){
 				printf("  x   ");
 			}
 			else{
-				printf("%5.2f ", p->value_player);
+				printf("%5.2f ", p->value[PLAYER_FIRST]);
 			}
 		}
 		printf("\n");
@@ -971,16 +1017,16 @@ void board_put_neutral(struct board * b, int i, int j){
 	}	
 }
 
-void find_max_value_player(struct board * b, int * bi, int * bj){
+void find_max_position(struct board * b, int * bi, int * bj, enum turn turn){
 	int best_i = -1, best_j = -1;
 	float best_value = MIN_VALUE;
 	for (int i = 0; i < 19; i++){
 		for (int j = 0; j < 19; j++){
 			if (b->pts[i][j].state == EMPTY && (!(b->pts[i][j].forbid_player))){
-				if (b->pts[i][j].value_player > best_value){
+				if (b->pts[i][j].value[turn] > best_value){
 					best_i = i;
 					best_j = j;
-					best_value = b->pts[i][j].value_player;
+					best_value = b->pts[i][j].value[turn];
 				}
 			}
 		}
@@ -989,12 +1035,31 @@ void find_max_value_player(struct board * b, int * bi, int * bj){
 	*bj = best_j;
 }
 
+void fix_references(struct board * b){
+	// only used for initializing dynamic current board
+	long long ofs; // NOTE: careful abt system dependency
+	ofs = ((char *)(&(b->pts[0][0])) - (char *)(b->LRlines[0].pts[0]));
+	for(int idx = 0; idx < 19; idx++){
+		for(int pos = 0; pos < 19; pos++){
+			b->LRlines[idx].pts[pos] = (struct point *)((char *)(b->LRlines[idx].pts[pos]) + ofs);
+			b->UDlines[idx].pts[pos] = (struct point *)((char *)(b->UDlines[idx].pts[pos]) + ofs);
+		}
+	}
+	for(int idx = 0; idx < 37; idx++){
+		for(int pos = 0; pos < 19; pos++){
+			b->DDlines[idx].pts[pos] = (struct point *)((char *)(b->DDlines[idx].pts[pos]) + ofs);
+			b->DUlines[idx].pts[pos] = (struct point *)((char *)(b->DUlines[idx].pts[pos]) + ofs);
+		}
+	}
+}
+
 struct dynamic_board * dynamic_init(struct board * base){
 	struct dynamic_board * db = (struct dynamic_board *)malloc(sizeof(struct dynamic_board));
 	db->depth = 0;
 	db->stack_top = NULL;
 	db->current = (struct board *)malloc(sizeof(struct board));
 	memcpy(db->current, base, sizeof(struct board));
+	fix_references(db->current);
 	return db;
 }
 
@@ -1002,7 +1067,7 @@ void dynamic_push_current(struct dynamic_board * db){
 	/* TODO: guarantee memory limit */
 	struct stack_node * sn;
 	sn = (struct stack_node *)malloc(sizeof(struct stack_node));
-	sn->saved_board = (struct board *)malloc(sizeof(struct board));
+	sn->saved_board = (struct board *)malloc(sizeof(struct board)); // NOTE: l->pts refers to current board
 	memcpy(sn->saved_board, db->current, sizeof(struct board));
 	sn->below = db->stack_top;
 	db->stack_top = sn;	
@@ -1044,19 +1109,223 @@ void dynamic_free(struct dynamic_board * db){
 	free(db);
 }
 
-int main(){
 
+
+
+bool has_rank_ge_n_player(struct board * b, int n){
+	for(int i = 0; i < 19; i++){
+		for(int j = 0; j < 19; j++){
+			for(int d = 0; d < 4; d++){
+				for(int r = n; r <= 6; r++){
+					if(b->pts[i][j].n_player[d][r] > 0){
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool has_rank_ge_n_enemy(struct board * b, int n){
+	for(int i = 0; i < 19; i++){
+		for(int j = 0; j < 19; j++){
+			for(int d = 0; d < 4; d++){
+				for(int r = n; r <= 6; r++){
+					if(b->pts[i][j].n_enemy[d][r] > 0){
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+
+float prior_board_value(struct board * b, enum turn turn){
+	// naive winning probability {-1.2 ~ (-1 ~ 1) ~ 1.2} estimation for player;
+	// TODO: local recompututation after single action (consider forbid 7)
+	// TODO: make good heuristic
+
+	// check for definite wins
+	if(turn == PLAYER_FIRST){
+		if(has_rank_ge_n_player(b, 4)){
+			return 1.2;
+		}
+	}
+	if(turn == PLAYER_SECOND){
+		if(has_rank_ge_n_player(b, 5)){
+			return 1.2;
+		}
+	}
+	if(turn == ENEMY_FIRST){
+		if(has_rank_ge_n_enemy(b, 4)){
+			return -1.2;
+		}
+	}
+	if(turn == ENEMY_SECOND){
+		if(has_rank_ge_n_enemy(b, 5)){
+			return -1.2;
+		}
+	}
+
+	// estimation
+	float res = 0.0;
+	if(has_rank_ge_n_player(b, 3)){
+		res += 0.1;
+	}
+	if(has_rank_ge_n_enemy(b, 3)){
+		res -= 0.1;
+	}
+	if(has_rank_ge_n_player(b, 4)){
+		res += 0.1;
+	}
+	if(has_rank_ge_n_enemy(b, 4)){
+		res -= 0.1;
+	}
+	return res;
+}
+
+int find_max_n_pts(struct board * b, int n, int * is, int * js, enum turn turn){
+	// TODO: optimize with list? (statically allocated in struct board / or handle rollback and freeing)
+	int found = 0;
+	bool newly_found;
+	struct point * p;
+	float best_value = MIN_VALUE; // not a winning probablility (may be valuable for both player and enemy)
+	int best_i;
+	int best_j;
+	bool already_found;
+	while(found < n){
+		newly_found = false;
+		
+		for(int i = 0; i < 19; i++){
+			for(int j = 0; j < 19; j++){
+				p = &(b->pts[i][j]);
+				if(p->state != EMPTY){
+					continue;
+				}
+				if(turn == PLAYER_FIRST || turn == PLAYER_SECOND){
+					if(p->forbid_player){
+						continue;
+					}
+				}
+				if(turn == ENEMY_FIRST || turn == ENEMY_SECOND){
+					if(p->forbid_enemy){
+						continue;
+					}
+				}
+				if(p->value[turn] > best_value){
+					already_found = false;
+					for(int k = 0; k < found; k++){
+						if(is[k] == i && js[k] == j){
+							already_found = true;
+							break;
+						}
+					}
+					if(already_found){
+						continue;
+					}
+					newly_found = true;
+					best_value = p->value[turn];
+					best_i = i;
+					best_j = j;
+				}
+			}
+		}
+		if(newly_found){
+			is[found] = best_i;
+			js[found] = best_j;
+			found++;
+		}
+		else{
+			// not enough empty points
+			return found;
+		}
+	}
+	return found;
+}
+
+float find_best_move(struct dynamic_board * db, int * i1, int * j1, int * i2, int * j2, const int breadth, const int depth, enum turn turn){
+	// return estimated winning probability with search
+	if(depth == 0){
+		return prior_board_value(db->current, turn);
+	}
+	int is[breadth];
+	int js[breadth];
+	int found;
+	found = find_max_n_pts(db->current, breadth, is, js, turn);
+
+	// (i2, j2) is best move at lext level
+	int best_i;
+	int best_j;
+	int best_next_i;
+	int best_next_j;
+	int i3, j3, i4, j4;
+
+	float best_win_prob;
+	float wp;
+
+	if(turn == PLAYER_FIRST || turn == PLAYER_SECOND){
+		best_win_prob = -1.3;
+		for(int n = 0; n < found; n++){
+			dynamic_put_player(db, is[n], js[n]);
+			wp = find_best_move(db, &i3, &j3, &i4, &j4, breadth, depth - 1, (enum turn)((turn+1)%4));
+			if(wp > best_win_prob){
+				best_win_prob = wp;
+				best_i = is[n];
+				best_j = js[n];
+				best_next_i = i3;
+				best_next_j = j3;
+			}
+			dynamic_rollback_one(db);
+		}
+	}
+	if(turn == ENEMY_FIRST || turn == ENEMY_SECOND){
+		best_win_prob = 1.3;
+		for(int n = 0; n < found; n++){
+			dynamic_put_enemy(db, is[n], js[n]);
+			wp = find_best_move(db, &i3, &j3, &i4, &j4, breadth, depth - 1, (enum turn)((turn+1)%4));
+			if(wp < best_win_prob){
+				best_win_prob = wp;
+				best_i = is[n];
+				best_j = js[n];
+				best_next_i = i3;
+				best_next_j = j3;
+			}
+			dynamic_rollback_one(db);
+		}
+	}
+	*i1 = best_i;
+	*j1 = best_j;
+	*i2 = best_next_i;
+	*j2 = best_next_j;
+
+	return best_win_prob;
+}
+
+void fixed_tree_search(struct board * b, int * i1, int * j1, int * i2, int * j2, int cnt){
+	// minimax tree search. top 5 pts, depth 4 search (evaluate 625 board states)
+	int breadth = 5;
+	int depth = 4;
+	struct dynamic_board * db = dynamic_init(b);
+	if(cnt == 1){
+		find_best_move(db, i1, j1, i2, j2, breadth, depth, PLAYER_SECOND);
+	}
+	if(cnt == 2){
+		find_best_move(db, i1, j1, i2, j2, breadth, depth, PLAYER_FIRST);
+	}
+	dynamic_free(db);
+}
+
+
+int main(){
 	struct board b;
 	board_init(&b);
-	struct dynamic_board * db = dynamic_init(&b);
-	dynamic_put_player(db, 9, 9);
-	dynamic_put_enemy(db, 9, 7);
-	dynamic_rollback_one(db);
-	dynamic_put_enemy(db, 9, 7);
-	dynamic_rollback_one(db);
-	dynamic_put_enemy(db, 9, 7);
-	dynamic_rollback_one(db);
-	display_value(db->current);
-	dynamic_free(db);
+	board_put_player(&b, 9, 9);
+	board_put_player(&b, 9, 13);
+	int i1, j1, i2, j2;
+	fixed_tree_search(&b, &i1, &j1, &i2, &j2, 2);
+	printf("(%d, %d) and (%d, %d)\n", i1, j1, i2, j2);
 	return 0;
 }
