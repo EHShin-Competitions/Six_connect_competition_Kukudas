@@ -90,7 +90,6 @@ struct line{
 	/* later: may have to make a single value of line */
 };
 
-
 struct board{
 	struct point pts[19][19];
 	struct line LRlines[19]; // [0][:] ~ [18][:]
@@ -106,9 +105,8 @@ struct stack_node{
 
 struct dynamic_board{
 	// board that can roll back moves
-	struct board base_board; // starting point
 	int depth; // possible number of roll back (current stack size + 1)
-	struct stack_top;
+	struct stack_node * stack_top;
 };
 
 struct dynamic_board * dynamic_init(struct board * base);
