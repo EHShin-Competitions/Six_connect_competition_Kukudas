@@ -1,45 +1,45 @@
 // Samsung Go Tournament Form C (g++-4.8.3)
 
 /*
-[AI ì½”ë“œ ì‘ì„± ë°©ë²•]
+[AI ÄÚµå ÀÛ¼º ¹æ¹ı]
 
-1. char info[]ì˜ ë°°ì—´ ì•ˆì—					"TeamName:ìì‹ ì˜ íŒ€ëª…,Department:ìì‹ ì˜ ì†Œì†"					ìˆœì„œë¡œ ì‘ì„±í•©ë‹ˆë‹¤.
-( ì£¼ì˜ ) Teamname:ê³¼ Department:ëŠ” ê¼­ ë“¤ì–´ê°€ì•¼ í•©ë‹ˆë‹¤.
-"ìì‹ ì˜ íŒ€ëª…", "ìì‹ ì˜ ì†Œì†"ì„ ìˆ˜ì •í•´ì•¼ í•©ë‹ˆë‹¤.
+1. char info[]ÀÇ ¹è¿­ ¾È¿¡					"TeamName:ÀÚ½ÅÀÇ ÆÀ¸í,Department:ÀÚ½ÅÀÇ ¼Ò¼Ó"					¼ø¼­·Î ÀÛ¼ºÇÕ´Ï´Ù.
+( ÁÖÀÇ ) Teamname:°ú Department:´Â ²À µé¾î°¡¾ß ÇÕ´Ï´Ù.
+"ÀÚ½ÅÀÇ ÆÀ¸í", "ÀÚ½ÅÀÇ ¼Ò¼Ó"À» ¼öÁ¤ÇØ¾ß ÇÕ´Ï´Ù.
 
-2. ì•„ë˜ì˜ myturn() í•¨ìˆ˜ ì•ˆì— ìì‹ ë§Œì˜ AI ì½”ë“œë¥¼ ì‘ì„±í•©ë‹ˆë‹¤.
+2. ¾Æ·¡ÀÇ myturn() ÇÔ¼ö ¾È¿¡ ÀÚ½Å¸¸ÀÇ AI ÄÚµå¸¦ ÀÛ¼ºÇÕ´Ï´Ù.
 
-3. AI íŒŒì¼ì„ í…ŒìŠ¤íŠ¸ í•˜ì‹¤ ë•ŒëŠ” "ìœ¡ëª© ì•Œê³ ë¦¬ì¦˜ëŒ€íšŒ íˆ´"ì„ ì‚¬ìš©í•©ë‹ˆë‹¤.
+3. AI ÆÄÀÏÀ» Å×½ºÆ® ÇÏ½Ç ¶§´Â "À°¸ñ ¾Ë°í¸®Áò´ëÈ¸ Åø"À» »ç¿ëÇÕ´Ï´Ù.
 
-4. ìœ¡ëª© ì•Œê³ ë¦¬ì¦˜ ëŒ€íšŒ íˆ´ì˜ ì—°ìŠµí•˜ê¸°ì—ì„œ ë°”ë‘‘ëŒì„ ëˆ„ë¥¸ í›„, ìì‹ ì˜ "íŒ€ëª…" ì´ ë“¤ì–´ê°„ ì•Œê³ ë¦¬ì¦˜ì„ ì¶”ê°€í•˜ì—¬ í…ŒìŠ¤íŠ¸ í•©ë‹ˆë‹¤.
-
-
-
-[ë³€ìˆ˜ ë° í•¨ìˆ˜]
-myturn(int cnt) : ìì‹ ì˜ AI ì½”ë“œë¥¼ ì‘ì„±í•˜ëŠ” ë©”ì¸ í•¨ìˆ˜ ì…ë‹ˆë‹¤.
-int cnt (myturn()í•¨ìˆ˜ì˜ íŒŒë¼ë¯¸í„°) : ëŒì„ ëª‡ ìˆ˜ ë‘¬ì•¼í•˜ëŠ”ì§€ ì •í•˜ëŠ” ë³€ìˆ˜, cntê°€ 1ì´ë©´ ìœ¡ëª© ì‹œì‘ ì‹œ  í•œ ë²ˆë§Œ  ë‘ëŠ” ìƒí™©(í•œ ë²ˆ), cntê°€ 2ì´ë©´ ê·¸ ì´í›„ ëŒì„ ë‘ëŠ” ìƒí™©(ë‘ ë²ˆ)
-int  x[0], y[0] : ìì‹ ì´ ë‘˜ ì²« ë²ˆ ì§¸ ëŒì˜ xì¢Œí‘œ , yì¢Œí‘œê°€ ì €ì¥ë˜ì–´ì•¼ í•©ë‹ˆë‹¤.
-int  x[1], y[1] : ìì‹ ì´ ë‘˜ ë‘ ë²ˆ ì§¸ ëŒì˜ xì¢Œí‘œ , yì¢Œí‘œê°€ ì €ì¥ë˜ì–´ì•¼ í•©ë‹ˆë‹¤.
-void domymove(int x[], int y[], cnt) : ë‘˜ ëŒë“¤ì˜ ì¢Œí‘œë¥¼ ì €ì¥í•´ì„œ ì¶œë ¥
+4. À°¸ñ ¾Ë°í¸®Áò ´ëÈ¸ ÅøÀÇ ¿¬½ÀÇÏ±â¿¡¼­ ¹ÙµÏµ¹À» ´©¸¥ ÈÄ, ÀÚ½ÅÀÇ "ÆÀ¸í" ÀÌ µé¾î°£ ¾Ë°í¸®ÁòÀ» Ãß°¡ÇÏ¿© Å×½ºÆ® ÇÕ´Ï´Ù.
 
 
-//int board[BOARD_SIZE][BOARD_SIZE]; ë°”ë‘‘íŒ í˜„ì¬ìƒí™© ë‹´ê³  ìˆì–´ ë°”ë¡œì‚¬ìš© ê°€ëŠ¥í•¨. ë‹¨, ì›ë³¸ë°ì´í„°ë¡œ ìˆ˜ì • ì ˆëŒ€ê¸ˆì§€
-// ë†“ì„ìˆ˜ ì—†ëŠ” ìœ„ì¹˜ì— ë°”ë‘‘ëŒì„ ë†“ìœ¼ë©´ ì‹¤ê²©íŒ¨ ì²˜ë¦¬.
 
-boolean ifFree(int x, int y) : í˜„ì¬ [x,y]ì¢Œí‘œì— ë°”ë‘‘ëŒì´ ìˆëŠ”ì§€ í™•ì¸í•˜ëŠ” í•¨ìˆ˜ (ì—†ìœ¼ë©´ true, ìˆìœ¼ë©´ false)
-int showBoard(int x, int y) : [x, y] ì¢Œí‘œì— ë¬´ìŠ¨ ëŒì´ ì¡´ì¬í•˜ëŠ”ì§€ ë³´ì—¬ì£¼ëŠ” í•¨ìˆ˜ (1 = ìì‹ ì˜ ëŒ, 2 = ìƒëŒ€ì˜ ëŒ, 3 = ë¸”ëŸ­í‚¹)
+[º¯¼ö ¹× ÇÔ¼ö]
+myturn(int cnt) : ÀÚ½ÅÀÇ AI ÄÚµå¸¦ ÀÛ¼ºÇÏ´Â ¸ŞÀÎ ÇÔ¼ö ÀÔ´Ï´Ù.
+int cnt (myturn()ÇÔ¼öÀÇ ÆÄ¶ó¹ÌÅÍ) : µ¹À» ¸î ¼ö µÖ¾ßÇÏ´ÂÁö Á¤ÇÏ´Â º¯¼ö, cnt°¡ 1ÀÌ¸é À°¸ñ ½ÃÀÛ ½Ã  ÇÑ ¹ø¸¸  µÎ´Â »óÈ²(ÇÑ ¹ø), cnt°¡ 2ÀÌ¸é ±× ÀÌÈÄ µ¹À» µÎ´Â »óÈ²(µÎ ¹ø)
+int  x[0], y[0] : ÀÚ½ÅÀÌ µÑ Ã¹ ¹ø Â° µ¹ÀÇ xÁÂÇ¥ , yÁÂÇ¥°¡ ÀúÀåµÇ¾î¾ß ÇÕ´Ï´Ù.
+int  x[1], y[1] : ÀÚ½ÅÀÌ µÑ µÎ ¹ø Â° µ¹ÀÇ xÁÂÇ¥ , yÁÂÇ¥°¡ ÀúÀåµÇ¾î¾ß ÇÕ´Ï´Ù.
+void domymove(int x[], int y[], cnt) : µÑ µ¹µéÀÇ ÁÂÇ¥¸¦ ÀúÀåÇØ¼­ Ãâ·Â
 
 
-<-------AIë¥¼ ì‘ì„±í•˜ì‹¤ ë•Œ, ê°™ì€ ì´ë¦„ì˜ í•¨ìˆ˜ ë° ë³€ìˆ˜ ì‚¬ìš©ì„ ê¶Œì¥í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤----->
+//int board[BOARD_SIZE][BOARD_SIZE]; ¹ÙµÏÆÇ ÇöÀç»óÈ² ´ã°í ÀÖ¾î ¹Ù·Î»ç¿ë °¡´ÉÇÔ. ´Ü, ¿øº»µ¥ÀÌÅÍ·Î ¼öÁ¤ Àı´ë±İÁö
+// ³õÀ»¼ö ¾ø´Â À§Ä¡¿¡ ¹ÙµÏµ¹À» ³õÀ¸¸é ½Ç°İÆĞ Ã³¸®.
+
+boolean ifFree(int x, int y) : ÇöÀç [x,y]ÁÂÇ¥¿¡ ¹ÙµÏµ¹ÀÌ ÀÖ´ÂÁö È®ÀÎÇÏ´Â ÇÔ¼ö (¾øÀ¸¸é true, ÀÖÀ¸¸é false)
+int showBoard(int x, int y) : [x, y] ÁÂÇ¥¿¡ ¹«½¼ µ¹ÀÌ Á¸ÀçÇÏ´ÂÁö º¸¿©ÁÖ´Â ÇÔ¼ö (1 = ÀÚ½ÅÀÇ µ¹, 2 = »ó´ëÀÇ µ¹, 3 = ºí·°Å·)
+
+
+<-------AI¸¦ ÀÛ¼ºÇÏ½Ç ¶§, °°Àº ÀÌ¸§ÀÇ ÇÔ¼ö ¹× º¯¼ö »ç¿ëÀ» ±ÇÀåÇÏÁö ¾Ê½À´Ï´Ù----->
 */
 
 #include <stdio.h>
 
 #include <time.h>
 
-// "ìƒ˜í”Œì½”ë“œ[C]"  -> ìì‹ ì˜ íŒ€ëª… (ìˆ˜ì •)
-// "AIë¶€ì„œ[C]"  -> ìì‹ ì˜ ì†Œì† (ìˆ˜ì •)
-// ì œì¶œì‹œ ì‹¤í–‰íŒŒì¼ì€ ë°˜ë“œì‹œ íŒ€ëª…ìœ¼ë¡œ ì œì¶œ!
+// "»ùÇÃÄÚµå[C]"  -> ÀÚ½ÅÀÇ ÆÀ¸í (¼öÁ¤)
+// "AIºÎ¼­[C]"  -> ÀÚ½ÅÀÇ ¼Ò¼Ó (¼öÁ¤)
+// Á¦Ãâ½Ã ½ÇÇàÆÄÀÏÀº ¹İµå½Ã ÆÀ¸íÀ¸·Î Á¦Ãâ!
 
 #include <stdlib.h>
 #include <string.h>
@@ -49,7 +49,9 @@ int showBoard(int x, int y) : [x, y] ì¢Œí‘œì— ë¬´ìŠ¨ ëŒì´ ì¡´ì¬í•˜ëŠ”ì§€ ë³´
 
 #define MAX_BREADTH 10
 
-#define C_PUCT 1.0
+#define C_PUCT 0.1
+
+int memcnt = 0;
 
 char buf[128];
 
@@ -1374,6 +1376,7 @@ struct mcts_edge{
 };
 
 struct mcts_node{
+	float v;
 	struct mcts_edge edges[19][19]; // array of all possible moves
 };
 
@@ -1433,6 +1436,10 @@ void mcts_init_edge(struct mcts_edge * e, int i, int j, float prior, struct mcts
 struct mcts_node * mcts_expand_node(struct board * b, enum turn turn, struct mcts_edge * upper){
 	// for root, turn = PLAYER_FIRST
 	struct mcts_node * node = (struct mcts_node *)malloc(sizeof(struct mcts_node));
+	if(node == NULL){
+		printf("malloc fail!\n");
+	}
+	memcnt++;
 	float prior;
 	bool forbidden;
 	for(int i = 0; i < 19; i++){
@@ -1447,12 +1454,89 @@ struct mcts_node * mcts_expand_node(struct board * b, enum turn turn, struct mct
 				node->edges[i][j].valid = false;
 			}
 			else{
+				// TODO: make better prior
 				prior = b->pts[i][j].value[turn];
 				mcts_init_edge(&(node->edges[i][j]), i, j, prior, upper);
 			}
 		}
 	}
 	return node;
+}
+
+void mcts_display(struct board * b, mcts_node * node){
+	struct point * p;
+	printf("BOARD\n");
+	for (int i = 0; i < 19; i++){
+		for (int j = 0; j < 19; j++){
+			p = &(b->pts[i][j]);
+			if (p->state == PLAYER){
+				printf("     ");
+				printf("  P ");
+			}
+			else if (p->state == ENEMY){
+				printf("     ");
+				printf("  E ");
+			}
+			else if (p->state == NEUTRAL){
+				printf("     ");
+				printf("  N ");
+			}
+			else if (p->forbid_player){
+				printf("     ");
+				printf("  x ");
+			}
+			else{
+				printf(" %3d:%4.1f", node->edges[i][j].N, node->edges[i][j].Q);
+			}
+		}
+		printf("\n");
+	}	
+}
+
+bool feq(float a, float b){
+	return (a-b)<0.01 && (b-a)<0.01;
+}
+
+bool mcts_check_tree(struct mcts_node * node, int depth, float * total_W, int * total_N, int * ilog, int * jlog){
+	struct mcts_edge * e;
+	int total_n;
+	float total_w;
+	int part_n;
+	float part_w;
+	
+	if(node == NULL){
+		*total_W = 0;
+		*total_N = 0;
+		return true;
+	}
+
+	total_n = 1;
+	total_w = node->v;
+	for(int i = 0; i < 19; i++){
+		for(int j = 0; j < 19; j++){
+			e = &(node->edges[i][j]);
+			if(e->valid){
+				total_n += e->N;
+				total_w += e->W;
+				ilog[depth] = i;
+				jlog[depth] = j;
+				if(!mcts_check_tree(e->result_node, depth + 1, &part_w, &part_n, ilog, jlog)){
+					return false;
+				}
+				if(part_n != e->N && e->terminal == NOT_TERMINAL){
+					printf("part_n (%d) VS e->N (%d) at depth %d\n", part_n, e->N, depth);
+					for(int c = 0; c <= depth; c++){
+						printf("(%d, %d) ", ilog[c], jlog[c]);
+					}
+					printf("\n");
+					return false;
+				}
+			}
+		}
+	}
+	*total_W = total_w;
+	*total_N = total_n;
+	return true;
 }
 
 
@@ -1478,11 +1562,8 @@ void mcts_find_best_move(struct board * b, int * i1, int * j1, int * i2, int * j
 
 	tree.root = mcts_expand_node(b, PLAYER_FIRST, NULL);
 
-
-
 	int time = 0;
 	while(true){
-
 		// new mcts step
 		node = tree.root;
 		turn = PLAYER_FIRST;
@@ -1497,13 +1578,12 @@ void mcts_find_best_move(struct board * b, int * i1, int * j1, int * i2, int * j
 				board_put_enemy(b, e->pos_i, e->pos_j);
 			}
 			node = e->result_node;
+			turn = (enum turn)((turn+1)%4);
 			if(node == NULL){
 				break;
 			}
-			turn = (enum turn)((turn+1)%4);
+			
 		}
-
-		//printf("selected e: (%d, %d)\n", e->pos_i, e->pos_j);
 
 		// expansion
 		if(e->terminal == UNVERIFIED){
@@ -1520,6 +1600,7 @@ void mcts_find_best_move(struct board * b, int * i1, int * j1, int * i2, int * j
 
 		if(e->terminal == NOT_TERMINAL){
 			e->result_node = mcts_expand_node(b, turn, e); // child of 'e' is move of 'turn'
+
 			added_value = prior_board_value(b, turn); // (-1 ~ 1) wrt player
 		}
 
@@ -1533,11 +1614,9 @@ void mcts_find_best_move(struct board * b, int * i1, int * j1, int * i2, int * j
 		else{
 			printf("should not reach here :/\n");
 		}
-		
-
 		// back-up
 		while(true){
-			turn = (enum turn)((turn-1)%4);
+			turn = (enum turn)(((int)turn+4-1)%4);
 			if(turn == PLAYER_FIRST || turn == PLAYER_SECOND){
 				e->W += added_value;
 			}
@@ -1551,16 +1630,15 @@ void mcts_find_best_move(struct board * b, int * i1, int * j1, int * i2, int * j
 			}
 			e = e->upper_edge;
 		}
-
 		memcpy(b, &saved_board, sizeof(struct board)); // restore root board state
 
 		time++;
-		timeout = time >= 5000;
-		
+		timeout = time >= 10000; //TODO: up to timelimit
 		if(timeout){
 			break;
 		}
 	}
+
 
 	// get 2 actions with maximum visit counts
 	int max_n;
@@ -1578,7 +1656,8 @@ void mcts_find_best_move(struct board * b, int * i1, int * j1, int * i2, int * j
 			}
 		}
 	}
-	//printf("A(%d, %d), max_n:%d\n", *i1, *j1, max_n);
+
+	// TODO: careful becoming terminal (null ptr) at first stone
 	max_n = 0;
 	node = node->edges[*i1][*j1].result_node;
 	for(int i = 0; i < 19; i++){
@@ -1593,63 +1672,12 @@ void mcts_find_best_move(struct board * b, int * i1, int * j1, int * i2, int * j
 			}
 		}
 	}
-
-	printf("Best Q: %f\n", tree.root->edges[*i1][*j1].Q);
 }
 
 int main(){
+
 	struct board b;
 	board_init(&b);
-	board_put_enemy(&b, 9, 9);
-
-	board_put_player(&b, 5, 5);
-	board_put_player(&b, 3, 5);
-
-	board_put_enemy(&b, 9, 5);
-	board_put_enemy(&b, 9, 6);
-
-	board_put_player(&b, 9, 4);
-	board_put_player(&b, 8, 5);
-
-	board_put_enemy(&b, 6, 5);
-	board_put_enemy(&b, 7, 6);
-
-	board_put_player(&b, 6, 6);
-	board_put_player(&b, 9, 8);
-
-	board_put_enemy(&b, 10, 6);
-	board_put_enemy(&b, 8, 4);
-
-	board_put_player(&b, 11, 6);
-	board_put_player(&b, 8, 8);
-
-	board_put_enemy(&b, 5, 6);
-	board_put_enemy(&b, 7, 4);
-
-	board_put_player(&b, 4, 4);
-	board_put_player(&b, 3, 3);
-
-	board_put_enemy(&b, 2, 2);
-	board_put_enemy(&b, 7, 7);
-
-	board_put_player(&b, 6, 8);
-	board_put_player(&b, 7, 8);
-
-	board_put_enemy(&b, 5, 8);
-	board_put_enemy(&b, 10, 8);
-
-	board_put_player(&b, 7, 3);
-	board_put_player(&b, 3, 7);
-
-	board_put_enemy(&b, 11, 7);
-	board_put_enemy(&b, 8, 10);
-/*
-	board_put_player(&b, 7, 11);
-	board_put_player(&b, 12, 6);
-
-	board_put_enemy(&b, 12, 8);
-	board_put_enemy(&b, 13, 9);
-*/
 
 
 	display_board(&b);
