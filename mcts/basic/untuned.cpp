@@ -1657,21 +1657,30 @@ void mcts_find_best_move(struct board * b, int * i1, int * j1, int * i2, int * j
 		}
 	}
 
-	// TODO: careful becoming terminal (null ptr) at first stone
+	// careful becoming terminal (null ptr) at first stone
 	max_n = 0;
 	node = node->edges[*i1][*j1].result_node;
-	for(int i = 0; i < 19; i++){
-		for(int j = 0; j < 19; j++){
-			e = &(node->edges[i][j]);
-			if(e->valid){
-				if(e->N > max_n){
-					max_n = e->N;
-					*i2 = i;
-					*j2 = j;
+	if(node == NULL){
+		// game already over
+		board_put_player(b, *i1, *j1);
+		find_max_position(b, i2, j2, PLAYER_SECOND);
+		memcpy(b, &saved_board, sizeof(struct board));
+	}
+	else{
+		for(int i = 0; i < 19; i++){
+			for(int j = 0; j < 19; j++){
+				e = &(node->edges[i][j]);
+				if(e->valid){
+					if(e->N > max_n){
+						max_n = e->N;
+						*i2 = i;
+						*j2 = j;
+					}
 				}
 			}
-		}
+		}		
 	}
+
 }
 
 int main(){
