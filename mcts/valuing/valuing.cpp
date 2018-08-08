@@ -49,7 +49,7 @@ int showBoard(int x, int y) : [x, y] 좌표에 무슨 돌이 존재하는지 보여주는 함수 (
 
 #define MAX_BREADTH 10
 
-#define C_PUCT 1
+#define C_PUCT 0.1
 
 #define ZERO_ONE_LITTLE(n) ((n <= 1) ? n : (1+0.1*(n-1)))
 
@@ -307,7 +307,7 @@ void reevaluate_point_m(float * r_m, float * r_y, float * first, float * second)
 		*second = 1.0;
 	}
 	else{
-		*first = -1.0; // temp
+		*second = -1.0; // temp
 	}
 
 	float pre_policy = 0.0; // > 0 => tanh => (0, 1)
@@ -344,11 +344,7 @@ void reevaluate_point(struct point * p){
 			r_e[r] += ZERO_ONE_LITTLE(p->n_enemy[d][r]);
 			// empty board center? : r_p[0] = 4*1.5 = 6
 			// typical values 1.4
-			if(p->n_enemy[d][r] < 0 ){
-				printf("negative n_enemy[d][r]\n");
-			}
 		}
-
 	}
 	reevaluate_point_m(r_p, r_e, &(p->value[PLAYER_FIRST]), &(p->value[PLAYER_SECOND]));
 	reevaluate_point_m(r_e, r_p, &(p->value[ENEMY_FIRST]), &(p->value[ENEMY_SECOND]));
@@ -521,7 +517,7 @@ void display_value(struct board * b){
 				printf("  x   ");
 			}
 			else{
-				printf("%5.2f ", p->value[PLAYER_FIRST]);
+				printf("%5.2f ", p->value[PLAYER_SECOND]);
 			}
 		}
 		printf("\n");
@@ -986,12 +982,13 @@ void board_put_enemy(struct board * b, int i, int j){
 
 
 void line_put_neutral(struct board * b, struct line * l, int pos){
+
 	int st, ed;
 
 	int p_update[7];
 	bool p_killed[13];
 	int e_update[7];
-	bool e_killed[11];
+	bool e_killed[13];
 	for (int r = 0; r < 7; r++){
 		p_update[r] = 0;
 		e_update[r] = 0;
@@ -1058,6 +1055,7 @@ void line_put_neutral(struct board * b, struct line * l, int pos){
 	}
 
 
+
 	// enemy rank, n update
 	st = pos - 6;
 	if (st < 0){
@@ -1118,11 +1116,8 @@ void line_put_neutral(struct board * b, struct line * l, int pos){
 		reevaluate_point(l->pts[i]);
 	}
 
-
-	// care connect seven for both player and enemy
 	for (int n = 0; n < 7; n++){
 		l->conv7_player[pos + n]++;
-		l->conv7_enemy[pos + n]++;
 		if (l->conv7_player[pos + n] == 6){
 			for (int i = 0; i < 7; i++){
 				if (pos + n - i >= 0 && pos + n - i < l->length){
@@ -1130,6 +1125,9 @@ void line_put_neutral(struct board * b, struct line * l, int pos){
 				}
 			}
 		}
+	}
+	for (int n = 0; n < 7; n++){
+		l->conv7_enemy[pos + n]++;
 		if (l->conv7_enemy[pos + n] == 6){
 			for (int i = 0; i < 7; i++){
 				if (pos + n - i >= 0 && pos + n - i < l->length){
@@ -1138,6 +1136,7 @@ void line_put_neutral(struct board * b, struct line * l, int pos){
 			}
 		}
 	}
+
 }
 
 
@@ -1562,7 +1561,8 @@ struct mcts_node * mcts_expand_node(struct board * b, enum turn turn, struct mct
 				node->edges[i][j].valid = false;
 			}
 			else{
-				prior = b->pts[i][j].prior_policy[turn];
+				prior = b->pts[i][j].value[turn];
+				//printf("%.4f", prior)
 				mcts_init_edge(&(node->edges[i][j]), i, j, prior, upper);
 			}
 		}
@@ -1593,7 +1593,7 @@ void mcts_display(struct board * b, mcts_node * node){
 				printf("  x ");
 			}
 			else{
-				printf(" %3d:%4.1f", node->edges[i][j].N, node->edges[i][j].Q);
+				printf(" %3d:%4.2f", node->edges[i][j].N, 100*node->edges[i][j].P);
 			}
 		}
 		printf("\n");
@@ -1908,6 +1908,8 @@ float prior_board_value_m(int * rlc_m, int * rlc_y, bool oneStone){
 	pre_value -= 0.05*rlc_y[3];
 	pre_value -= 0.02*rlc_y[2];
 
+	//printf("%f ", pre_value);
+
 	return tanh(pre_value);
 }
 
@@ -1938,19 +1940,10 @@ int main(){
 
 	struct board b;
 	board_init(&b);
-	/*
-	board_put_neutral(&b, 9, 9);
-	board_put_neutral(&b, 9, 11);
-	*/
-	board_put_player(&b, 9, 9);
-	board_put_player(&b, 9, 11);
-	display_value(&b);
-	
-	/*
 	display_board(&b);
 	int i1, j1, i2, j2;
 	mcts_find_best_move(&b, &i1, &j1, &i2, &j2, 2);
 	printf("(%d, %d) and (%d, %d)\n", i1, j1, i2, j2);
-	*/
+	
 	return 0;
 }
