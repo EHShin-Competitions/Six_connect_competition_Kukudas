@@ -1785,6 +1785,7 @@ void mcts_find_best_move(struct board * b, int * i1, int * j1, int * i2, int * j
 
 	if (cnt == 1){
 		mcts_free(tree.root);
+		return;
 	}
 
 	// careful becoming terminal (null ptr) at first stone
@@ -1812,6 +1813,7 @@ void mcts_find_best_move(struct board * b, int * i1, int * j1, int * i2, int * j
 	}
 
 	mcts_free(tree.root);
+	return;
 
 	//mcts_display(b, tree.root);
 	//mcts_display(b, tree.root->edges[*i1][*j1].result_node);
