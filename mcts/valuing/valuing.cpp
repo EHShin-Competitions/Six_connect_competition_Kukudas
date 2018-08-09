@@ -49,7 +49,7 @@ int showBoard(int x, int y) : [x, y] 좌표에 무슨 돌이 존재하는지 보여주는 함수 (
 
 #define MAX_BREADTH 10
 
-#define C_PUCT 0.1
+#define C_PUCT 5
 
 #define ZERO_ONE_LITTLE(n) ((n <= 1) ? n : (1+0.1*(n-1)))
 
@@ -1740,7 +1740,7 @@ void mcts_find_best_move(struct board * b, int * i1, int * j1, int * i2, int * j
 		memcpy(b, &saved_board, sizeof(struct board)); // restore root board state
 
 		time++;
-		timeout = time >= 10000; //TODO: up to timelimit
+		timeout = time >= 5000; //TODO: up to timelimit
 		if(timeout){
 			break;
 		}
@@ -1789,9 +1789,8 @@ void mcts_find_best_move(struct board * b, int * i1, int * j1, int * i2, int * j
 			}
 		}		
 	}
-
-	mcts_display(b, tree.root);
-	mcts_display(b, tree.root->edges[*i1][*j1].result_node);
+	//mcts_display(b, tree.root);
+	//mcts_display(b, tree.root->edges[*i1][*j1].result_node);
 
 }
 
@@ -1935,15 +1934,51 @@ float prior_board_value(struct board * b, enum turn turn){
 	}
 }
 
+int self_play_test(){
+	struct board p_board, e_board;
+	board_init(&p_board);
+	board_init(&e_board);
+	int t = 0;
+	bool first = true;
+	int cnt;
+	int i1, j1, i2, j2;
+	while(true){
+		if(t == 0){
+			cnt = 1;
+		}
+		else{
+			cnt = 2;
+		}
+		display_board(&p_board);
+		if((t%2 == 0) == true){
+			printf("PLAYER's turn, board value: %f\n", prior_board_value(&p_board, PLAYER_FIRST));
+			mcts_find_best_move(&p_board, &i1, &j1, &i2, &j2, cnt);
+			board_put_player(&p_board, i1, j1);
+			board_put_enemy(&e_board, i1, j1);
+			if(cnt == 2){
+				board_put_player(&p_board, i2, j2);
+				board_put_enemy(&e_board, i2, j2);
+			}
+		}
+		else{
+			printf("ENEMY's turn, board value: %f\n", prior_board_value(&p_board, ENEMY_FIRST));
+			mcts_find_best_move(&e_board, &i1, &j1, &i2, &j2, cnt);
+			board_put_player(&e_board, i1, j1);
+			board_put_enemy(&p_board, i1, j1);
+			if(cnt == 2){
+				board_put_player(&e_board, i2, j2);
+				board_put_enemy(&p_board, i2, j2);
+			}
+		}
+		t++;
+		getchar();
+	}
+}
+
 
 int main(){
 
-	struct board b;
-	board_init(&b);
-	display_board(&b);
-	int i1, j1, i2, j2;
-	mcts_find_best_move(&b, &i1, &j1, &i2, &j2, 2);
-	printf("(%d, %d) and (%d, %d)\n", i1, j1, i2, j2);
-	
+	self_play_test();
+
 	return 0;
 }
