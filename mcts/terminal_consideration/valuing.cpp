@@ -117,8 +117,6 @@ struct board{
 	struct line DDlines[37]; // [18][0] ~ [0][18]
 	struct line DUlines[37]; // [0][0] ~ [18][18]
 	int empty_left;
-	int p_valid_left;
-	int e_valid_left;
 };
 
 struct stack_node{
@@ -443,8 +441,6 @@ void board_init(struct board * b){
 	}
 
 	b->empty_left = 19*19;
-	b->e_valid_left = 19*19;
-	b->p_valid_left = 19*19;
 }
 
 
@@ -702,7 +698,6 @@ void forbid_point_player(struct board * b, struct point * p){
 		return;
 	}
 	p->forbid_player = true;
-	b->p_valid_left--;
 	for (int d = 0; d < 4; d++){
 		l = get_associated_line(b, p->row, p->col, (enum direction)d, &idx);
 		if (l->length >= 6){
@@ -718,7 +713,6 @@ void forbid_point_enemy(struct board * b, struct point * p){
 		return;
 	}
 	p->forbid_enemy = true;
-	b->e_valid_left--;
 	for (int d = 0; d < 4; d++){
 		l = get_associated_line(b, p->row, p->col, (enum direction)d, &idx);
 		if (l->length >= 6){
@@ -866,12 +860,6 @@ void board_put_player(struct board * b, int i, int j){
 	}
 	b->pts[i][j].state = PLAYER;
 	b->empty_left--;
-	if(!b->pts[i][j].forbid_player){
-		b->p_valid_left--;
-	}
-	if(!b->pts[i][j].forbid_enemy){
-		b->e_valid_left--;
-	}
 	// TODO : may have to pop out from ordered list of empty points
 
 	for (int d = 0; d < 4; d++){
@@ -1016,12 +1004,6 @@ void board_put_enemy(struct board * b, int i, int j){
 		return;
 	}
 	b->empty_left--;
-	if(!b->pts[i][j].forbid_player){
-		b->p_valid_left--;
-	}
-	if(!b->pts[i][j].forbid_enemy){
-		b->e_valid_left--;
-	}
 	b->pts[i][j].state = ENEMY;
 	// TODO : may have to pop out from ordered list of empty points
 
@@ -1206,12 +1188,6 @@ void board_put_neutral(struct board * b, int i, int j){
 		return;
 	}
 	b->empty_left--;
-	if(!b->pts[i][j].forbid_player){
-		b->p_valid_left--;
-	}
-	if(!b->pts[i][j].forbid_enemy){
-		b->e_valid_left--;
-	}
 	b->pts[i][j].state = NEUTRAL;
 	// TODO : may have to pop out from ordered list of empty points
 
@@ -1873,7 +1849,7 @@ void mcts_find_best_move(struct board * b, int * i1, int * j1, int * i2, int * j
 		memcpy(b, &saved_board, sizeof(struct board)); // restore root board state
 
 		time++;
-		timeout = time >= 1000; //TODO: up to timelimit
+		timeout = time >= 100; //TODO: up to timelimit
 		if(timeout){
 			break;
 		}
@@ -2077,7 +2053,7 @@ int self_play_test(){
 	bool first = true;
 	int cnt;
 	int i1, j1, i2, j2;
-	while(true){
+	while(p_board.empty_left > 0){
 		if(t == 0){
 			cnt = 1;
 		}
